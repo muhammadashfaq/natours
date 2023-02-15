@@ -1,8 +1,10 @@
 const express = require('express');
 const morgan = require('morgan');
+const AppError = require('./utils/appErrors');
 
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
+const errorController = require('./controllers/errorController');
 
 const app = express();
 
@@ -18,5 +20,11 @@ if (process.env.NODE_ENV === 'development') {
 // 3) ROUTES
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+
+app.all('*', (req, res, next) => {
+  next(new AppError(`Can't find ${req.url}`, 404));
+});
+
+app.use(errorController);
 
 module.exports = app;
