@@ -14,6 +14,15 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     validate: [Validator.isEmail, 'Please provide a valid email'],
   },
+  role: {
+    type: String,
+    enum: ['user', 'guide', 'lead-guide', 'admin'],
+    default: 'user',
+  },
+  passwordChangedAt: {
+    type: Date,
+    default: Date.now(),
+  },
   password: {
     type: String,
     required: [true, 'Please provide password'],
@@ -30,7 +39,9 @@ const userSchema = new mongoose.Schema({
       },
     },
   },
-  photo: String,
+  photo: {
+    type: String,
+  },
 });
 
 userSchema.pre('save', async function (next) {
@@ -49,6 +60,19 @@ userSchema.methods.correctPassword = async (
   userPassword
 ) => {
   return await bcryptjs.compare(candidatePassword, userPassword);
+};
+
+userSchema.methods.changedPasswordAfter = async (JWTTimestamp) => {
+  if (this.passwordChangedAt) {
+    const changedTimestamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10
+    );
+
+    return JWTTimestamp < changedTimestamp;
+  }
+
+  return false;
 };
 
 const User = mongoose.model('User', userSchema);
