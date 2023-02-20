@@ -64,6 +64,15 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
+userSchema.pre('save', async function (next) {
+  //Only run this function if passwords was actually modified
+  if (!this.isModified('password') || this.isNew) return next();
+
+  //Hash the password with with 12 string
+  this.passwordChangedAt = Date.now() - 1000;
+  next();
+});
+
 userSchema.methods.correctPassword = async (
   candidatePassword,
   userPassword
