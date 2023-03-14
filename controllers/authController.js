@@ -203,3 +203,21 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     token,
   });
 });
+
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  // 1) We need to get user from collection
+  let user = await User.findById(req.user.id).select("+password");
+  
+  if (!(await user.correctPassword(req.body.passwordCurrent , user.password))) {
+    return next(new AppError('Your current password is wrong', 404));
+  }
+
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  await user.save(); 
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Password updated',
+  });
+});
