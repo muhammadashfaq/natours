@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const slugify = require('slugify');
 // const validator = require('validator');
 
-const tourSchema = new mongoose.Schema(
+const tourSchema = new mongoose.Schema( 
   {
     name: {
       type: String,
@@ -15,7 +15,7 @@ const tourSchema = new mongoose.Schema(
     },
     slug: String,
     duration: {
-      type: Number, 
+      type: Number,
       required: [true, 'A tour must have a duration'],
     },
     maxGroupSize: {
@@ -83,23 +83,29 @@ const tourSchema = new mongoose.Schema(
       type: {
         type: String,
         default: 'Point',
-        enum: ['Point']
-      },
-      coordinates: [Number],
-      address: String,
-      description: String
-    },
-    locations: [{
-      type: {
-        type: String,
-        default: 'Point',
-        enum: ['Point']
+        enum: ['Point'],
       },
       coordinates: [Number],
       address: String,
       description: String,
-      day: Number
-    }]
+    },
+    locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point'],
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number,
+      },
+    ],
+    guides: [{
+      type: mongoose.Schema.ObjectId,
+      ref: 'User'
+    }],
   },
   {
     toJSON: { virtuals: true },
@@ -140,6 +146,14 @@ tourSchema.post(/^find/, function (docs, next) {
   console.log(`Query took ${Date.now() - this.start} milliseconds!`);
   next();
 });
+
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'guides',
+    select: '-__v -passwordChangedAt'
+  })
+  next()
+})
 
 // AGGREGATION MIDDLEWARE
 tourSchema.pre('aggregate', function (next) {
