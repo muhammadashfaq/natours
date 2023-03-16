@@ -3,12 +3,10 @@ class AppError extends Error {
     super(message);
 
     this.statusCode = statusCode;
-    let str = String(this.statusCode).charAt(0);
-    console.log(str);
-
-    this.status = `${str == '4' ? 'fail' : 'error'}`;
-
+    this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
     this.isOperational = true;
+
+    Error.captureStackTrace(this, this.constructor);
   }
 }
 
